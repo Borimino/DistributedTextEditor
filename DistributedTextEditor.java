@@ -24,6 +24,8 @@ public class DistributedTextEditor extends JFrame {
     private boolean changed = false;
     private boolean connected = false;
     private DocumentEventCapturer dec = new DocumentEventCapturer();
+
+	private ClientConnector clientConnector;
     
     public DistributedTextEditor() {
     	area1.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -111,7 +113,15 @@ public class DistributedTextEditor extends JFrame {
 	    public void actionPerformed(ActionEvent e) {
 	    	saveOld();
 	    	area1.setText("");
-	    	setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
+	    	setTitle("Connecting to " + ipaddress.getText() + ":" + ClientConnector.portNumber + "...");
+			clientConnector = new ClientConnector(ipaddress.getText());
+			if (clientConnector.isConnected())
+			{
+				setTitle("Connected to " + ipaddress.getText() + ":" + clientConnector.portNumber);
+			} else
+			{
+				setTitle("Not able to connect to " + ipaddress.getText() + ":" + clientConnector.portNumber);
+			}
 	    	changed = false;
 	    	Save.setEnabled(false);
 	    	SaveAs.setEnabled(false);
