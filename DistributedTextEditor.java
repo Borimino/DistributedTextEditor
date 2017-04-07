@@ -2,6 +2,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.*;
 import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.event.*;
@@ -98,16 +99,25 @@ public class DistributedTextEditor extends JFrame {
 	};
 
     Action Listen = new AbstractAction("Listen") {
-	    public void actionPerformed(ActionEvent e) {
-	    	saveOld();
-	    	area1.setText("");
-		// TODO: Become a server listening for connections on some port.
-	    	setTitle("I'm listening on xxx.xxx.xxx:zzzz");
-	    	changed = false;
-	    	Save.setEnabled(false);
-	    	SaveAs.setEnabled(false);
-	    }
-	};
+        public void actionPerformed(ActionEvent e) {
+            saveOld();
+            area1.setText("");
+            // TODO: Become a server listening for connections on some port.
+            try {
+                String portString = portNumber.getText();
+                int portNumber = Integer.parseInt(portString);
+                InetAddress localhost = InetAddress.getLocalHost();
+                String localhostAddress = localhost.getHostAddress();
+                setTitle("I'm listening on " + localhostAddress + ":" + portNumber);
+                changed = false;
+                Save.setEnabled(false);
+                SaveAs.setEnabled(false);
+            } catch (UnknownHostException ex) {
+                // TODO: Handle exception
+
+            }
+        }
+    };
 
     Action Connect = new AbstractAction("Connect") {
 	    public void actionPerformed(ActionEvent e) {
