@@ -2,7 +2,11 @@ import java.net.*;
 import java.io.*;
 
 public class ServerListener implements Runnable {
+
     protected ServerSocket serverSocket;
+	protected Socket socket;
+	protected BufferedReader fromClient;
+	protected PrintWriter toClient;
     private int portNumber;
 
     public ServerListener(int portNumber) {
@@ -15,6 +19,8 @@ public class ServerListener implements Runnable {
             while(true) {
                 Socket socket = waitForConnectionFromClient();
                 if (socket != null) {
+					fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					toClient = new PrintWriter(socket.getOutputStream(), true);
                     // TODO: Handle stuff
                 }
             }
@@ -32,4 +38,20 @@ public class ServerListener implements Runnable {
         }
         return res;
     }
+
+	public boolean isConected() {
+		return (socket != null);
+	}
+
+	public Socket getSocket() {
+		return socket;
+	}
+
+	public PrintWriter getPrintWriter(){
+		return toClient;
+	}
+
+	public BufferedReader getBufferedReader(){
+		return fromClient;
+	}
 }
