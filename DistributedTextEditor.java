@@ -27,6 +27,7 @@ public class DistributedTextEditor extends JFrame {
     private DocumentEventCapturer dec = new DocumentEventCapturer();
 
 	private ClientConnector clientConnector;
+    private ServerListener serverListener;
     
     public DistributedTextEditor() {
     	area1.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -112,6 +113,8 @@ public class DistributedTextEditor extends JFrame {
                 changed = false;
                 Save.setEnabled(false);
                 SaveAs.setEnabled(false);
+                serverListener = new ServerListener(portNumber);
+                new Thread(serverListener).start();
             } catch (UnknownHostException ex) {
                 // TODO: Handle exception
 
