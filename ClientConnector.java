@@ -12,12 +12,14 @@ public class ClientConnector {
 	protected static final int portNumber = 40305;  
 
 	protected PrintWriter toServer;
+	protected BufferedReader fromServer;
 	protected Socket socket;
 
 	public ClientConnector (String serverName) {
 		socket = connectToServer(serverName);
 		try {
 			toServer = new PrintWriter(socket.getOutputStream(), true);
+			fromServer = new BufferedReader(new InputStreamReader (socket.getInputStream()));
 		} catch (NullPointerException e) {
 			System.err.println("Not able to connect to " + serverName + ":" + portNumber);
 		} catch (IOException e) {
@@ -43,5 +45,17 @@ public class ClientConnector {
 
 	public boolean isConnected() {
 		return (socket != null);
+	}
+
+	public Socket getSocket() {
+		return socket;
+	}
+
+	public PrintWriter getPrintWriter() {
+		return toServer;
+	}
+
+	public BufferedReader getBufferedReader(){
+		return fromServer;
 	}
 }
