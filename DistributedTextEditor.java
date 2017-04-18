@@ -26,8 +26,7 @@ public class DistributedTextEditor extends JFrame {
     private boolean connected = false;
     private DocumentEventCapturer dec = new DocumentEventCapturer();
 
-	private ClientConnector clientConnector;
-    private ServerListener serverListener;
+	private Connector connector;
     
     public DistributedTextEditor() {
     	area1.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -106,15 +105,17 @@ public class DistributedTextEditor extends JFrame {
             // TODO: Become a server listening for connections on some port.
             try {
                 String portString = portNumber.getText();
-                int portNumber = Integer.parseInt(portString);
+                //int portNumber = Integer.parseInt(portString);
                 InetAddress localhost = InetAddress.getLocalHost();
                 String localhostAddress = localhost.getHostAddress();
-                setTitle("I'm listening on " + localhostAddress + ":" + portNumber);
+                setTitle("I'm listening on " + localhostAddress + ":" + Connector.portNumber);
                 changed = false;
                 Save.setEnabled(false);
                 SaveAs.setEnabled(false);
-                serverListener = new ServerListener(portNumber);
-                new Thread(serverListener).start();
+				connector = new Connector();
+				connector.listenForClient();
+                //serverListener = new ServerListener(portNumber);
+                //new Thread(serverListener).start();
             } catch (UnknownHostException ex) {
                 // TODO: Handle exception
 
@@ -126,14 +127,15 @@ public class DistributedTextEditor extends JFrame {
 	    public void actionPerformed(ActionEvent e) {
 	    	saveOld();
 	    	area1.setText("");
-	    	setTitle("Connecting to " + ipaddress.getText() + ":" + ClientConnector.portNumber + "...");
-			clientConnector = new ClientConnector(ipaddress.getText());
-			if (clientConnector.isConnected())
+	    	setTitle("Connecting to " + ipaddress.getText() + ":" + Connector.portNumber + "...");
+			connector = new Connector();
+			connector.connectToServer(ipaddress.getText());
+			if (connector.isConnected())
 			{
-				setTitle("Connected to " + ipaddress.getText() + ":" + clientConnector.portNumber);
+				setTitle("Connected to " + ipaddress.getText() + ":" + connector.portNumber);
 			} else
 			{
-				setTitle("Not able to connect to " + ipaddress.getText() + ":" + clientConnector.portNumber);
+				setTitle("Not able to connect to " + ipaddress.getText() + ":" + connector.portNumber);
 			}
 	    	changed = false;
 	    	Save.setEnabled(false);
