@@ -6,6 +6,9 @@ public class Connector {
 	protected static final int portNumber = 40305;
 
 	protected Socket socket;
+	protected ObjectInputStream inStream;
+	protected ObjectOutputStream outStream;
+
 
 	/**
 	 *
@@ -14,8 +17,10 @@ public class Connector {
 	public void connectToServer(String serverName) {
 		try {
 			this.socket = new Socket(serverName,portNumber);
+			this.inStream = new ObjectInputStream(socket.getInputStream());
+			this.outStream = new ObjectOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
-			// We return null on IOExceptions
+			// We do nothing on IOExceptions
 		}
 	}
 
@@ -45,4 +50,30 @@ public class Connector {
 	public Socket getSocket() {
 		return socket;
 	}
+
+	public MyTextEvent take() {
+		try {
+			return (MyTextEvent) inStream.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			// We return null on exceptions
+			return null;
+		}
+	}
+
+	public void startSendThread(DocumentEventCapturer dec) {
+		new Thread (new Runnable() {
+			public void run() {
+				while (true) {
+					try {
+						MyTextEvent event = dec.take();
+						if (isConnected()) {
+							outStream.writeObject(event);
+						}
+					} catch (InterruptedException | IOException e) {
+					}
+				}
+			}
+		}).start();
+	}
+
 }

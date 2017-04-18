@@ -12,11 +12,11 @@ import java.awt.EventQueue;
  */
 public class EventReplayer implements Runnable {
 
-	private DocumentEventCapturer dec;
+	private Connector con;
 	private JTextArea area;
 
-	public EventReplayer(DocumentEventCapturer dec, JTextArea area) {
-		this.dec = dec;
+	public EventReplayer(Connector con, JTextArea area) {
+		this.con = con;
 		this.area = area;
 	}
 
@@ -24,7 +24,7 @@ public class EventReplayer implements Runnable {
 		boolean wasInterrupted = false;
 		while (!wasInterrupted) {
 			try {
-				MyTextEvent mte = dec.take();
+				MyTextEvent mte = con.take();
 				if (mte instanceof TextInsertEvent) {
 					final TextInsertEvent tie = (TextInsertEvent)mte;
 					EventQueue.invokeLater(new Runnable() {

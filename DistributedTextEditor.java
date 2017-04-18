@@ -10,125 +10,126 @@ import java.util.concurrent.*;
 
 public class DistributedTextEditor extends JFrame {
 
-    private JTextArea area1 = new JTextArea(20,120);
-    private JTextArea area2 = new JTextArea(20,120);     
-    private JTextField ipaddress = new JTextField("IP address here");     
-    private JTextField portNumber = new JTextField("Port number here");     
-    
-    private EventReplayer er;
-    private Thread ert; 
-    
-    private JFileChooser dialog = 
-    		new JFileChooser(System.getProperty("user.dir"));
+	private JTextArea area1 = new JTextArea(20,120);
+	private JTextArea area2 = new JTextArea(20,120);     
+	private JTextField ipaddress = new JTextField("IP address here");     
+	private JTextField portNumber = new JTextField("Port number here");     
 
-    private String currentFile = "Untitled";
-    private boolean changed = false;
-    private boolean connected = false;
-    private DocumentEventCapturer dec = new DocumentEventCapturer();
+	private EventReplayer er;
+	private Thread ert; 
 
-	private Connector connector;
-    
-    public DistributedTextEditor() {
-    	area1.setFont(new Font("Monospaced",Font.PLAIN,12));
+	private JFileChooser dialog = 
+		new JFileChooser(System.getProperty("user.dir"));
 
-    	area2.setFont(new Font("Monospaced",Font.PLAIN,12));
-    	((AbstractDocument)area1.getDocument()).setDocumentFilter(dec);
-    	area2.setEditable(false);
-    	
-    	Container content = getContentPane();
-    	content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-    	
-    	JScrollPane scroll1 = 
-    			new JScrollPane(area1, 
-    					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-    					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-    	content.add(scroll1,BorderLayout.CENTER);
+	private String currentFile = "Untitled";
+	private boolean changed = false;
+	private boolean connected = false;
+	private DocumentEventCapturer dec = new DocumentEventCapturer();
 
-    	JScrollPane scroll2 = 
-    			new JScrollPane(area2, 
-    					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-    					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+	private Connector connector = new Connector();
+
+	public DistributedTextEditor() {
+		area1.setFont(new Font("Monospaced",Font.PLAIN,12));
+
+		area2.setFont(new Font("Monospaced",Font.PLAIN,12));
+		((AbstractDocument)area1.getDocument()).setDocumentFilter(dec);
+		area2.setEditable(false);
+
+		Container content = getContentPane();
+		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+
+		JScrollPane scroll1 = 
+			new JScrollPane(area1, 
+					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		content.add(scroll1,BorderLayout.CENTER);
+
+		JScrollPane scroll2 = 
+			new JScrollPane(area2, 
+					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		content.add(scroll2,BorderLayout.CENTER);	
-		
+
 		content.add(ipaddress,BorderLayout.CENTER);	
 		content.add(portNumber,BorderLayout.CENTER);	
-		
-	JMenuBar JMB = new JMenuBar();
-	setJMenuBar(JMB);
-	JMenu file = new JMenu("File");
-	JMenu edit = new JMenu("Edit");
-	JMB.add(file); 
-	JMB.add(edit);
-	
-	file.add(Listen);
-	file.add(Connect);
-	file.add(Disconnect);
-	file.addSeparator();
-	file.add(Save);
-	file.add(SaveAs);
-	file.add(Quit);
-		
-	edit.add(Copy);
-	edit.add(Paste);
-	edit.getItem(0).setText("Copy");
-	edit.getItem(1).setText("Paste");
 
-	Save.setEnabled(false);
-	SaveAs.setEnabled(false);
-		
-	setDefaultCloseOperation(EXIT_ON_CLOSE);
-	pack();
-	area1.addKeyListener(k1);
-	setTitle("Disconnected");
-	setVisible(true);
-	area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
-		     "Try to type and delete stuff in the top area.\n" + 
-		     "Then figure out how it works.\n", 0);
+		JMenuBar JMB = new JMenuBar();
+		setJMenuBar(JMB);
+		JMenu file = new JMenu("File");
+		JMenu edit = new JMenu("Edit");
+		JMB.add(file); 
+		JMB.add(edit);
 
-	er = new EventReplayer(dec, area2);
-	ert = new Thread(er);
-	ert.start();
-    }
+		file.add(Listen);
+		file.add(Connect);
+		file.add(Disconnect);
+		file.addSeparator();
+		file.add(Save);
+		file.add(SaveAs);
+		file.add(Quit);
 
-    private KeyListener k1 = new KeyAdapter() {
-	    public void keyPressed(KeyEvent e) {
-		changed = true;
-		Save.setEnabled(true);
-		SaveAs.setEnabled(true);
-	    }
+		edit.add(Copy);
+		edit.add(Paste);
+		edit.getItem(0).setText("Copy");
+		edit.getItem(1).setText("Paste");
+
+		Save.setEnabled(false);
+		SaveAs.setEnabled(false);
+
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		pack();
+		area1.addKeyListener(k1);
+		setTitle("Disconnected");
+		setVisible(true);
+		area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
+				"Try to type and delete stuff in the top area.\n" + 
+				"Then figure out how it works.\n", 0);
+
+		connector.startSendThread(dec);
+		er = new EventReplayer(connector, area2);
+		ert = new Thread(er);
+		ert.start();
+	}
+
+	private KeyListener k1 = new KeyAdapter() {
+		public void keyPressed(KeyEvent e) {
+			changed = true;
+			Save.setEnabled(true);
+			SaveAs.setEnabled(true);
+		}
 	};
 
-    Action Listen = new AbstractAction("Listen") {
-        public void actionPerformed(ActionEvent e) {
-            saveOld();
-            area1.setText("");
-            // TODO: Become a server listening for connections on some port.
-            try {
-                String portString = portNumber.getText();
-                //int portNumber = Integer.parseInt(portString);
-                InetAddress localhost = InetAddress.getLocalHost();
-                String localhostAddress = localhost.getHostAddress();
-                setTitle("I'm listening on " + localhostAddress + ":" + Connector.portNumber);
-                changed = false;
-                Save.setEnabled(false);
-                SaveAs.setEnabled(false);
-				connector = new Connector();
+	Action Listen = new AbstractAction("Listen") {
+		public void actionPerformed(ActionEvent e) {
+			saveOld();
+			area1.setText("");
+			// TODO: Become a server listening for connections on some port.
+			try {
+				String portString = portNumber.getText();
+				//int portNumber = Integer.parseInt(portString);
+				InetAddress localhost = InetAddress.getLocalHost();
+				String localhostAddress = localhost.getHostAddress();
+				setTitle("I'm listening on " + localhostAddress + ":" + Connector.portNumber);
+				changed = false;
+				Save.setEnabled(false);
+				SaveAs.setEnabled(false);
+				//connector = new Connector();
 				connector.listenForClient();
-                //serverListener = new ServerListener(portNumber);
-                //new Thread(serverListener).start();
-            } catch (UnknownHostException ex) {
-                // TODO: Handle exception
+				//serverListener = new ServerListener(portNumber);
+				//new Thread(serverListener).start();
+			} catch (UnknownHostException ex) {
+				// TODO: Handle exception
 
-            }
-        }
-    };
+			}
+		}
+	};
 
-    Action Connect = new AbstractAction("Connect") {
-	    public void actionPerformed(ActionEvent e) {
-	    	saveOld();
-	    	area1.setText("");
-	    	setTitle("Connecting to " + ipaddress.getText() + ":" + Connector.portNumber + "...");
-			connector = new Connector();
+	Action Connect = new AbstractAction("Connect") {
+		public void actionPerformed(ActionEvent e) {
+			saveOld();
+			area1.setText("");
+			setTitle("Connecting to " + ipaddress.getText() + ":" + Connector.portNumber + "...");
+			//connector = new Connector();
 			connector.connectToServer(ipaddress.getText());
 			if (connector.isConnected())
 			{
@@ -137,73 +138,73 @@ public class DistributedTextEditor extends JFrame {
 			{
 				setTitle("Not able to connect to " + ipaddress.getText() + ":" + connector.portNumber);
 			}
-	    	changed = false;
-	    	Save.setEnabled(false);
-	    	SaveAs.setEnabled(false);
-	    }
+			changed = false;
+			Save.setEnabled(false);
+			SaveAs.setEnabled(false);
+		}
 	};
 
-    Action Disconnect = new AbstractAction("Disconnect") {
-	    public void actionPerformed(ActionEvent e) {	
-	    	setTitle("Disconnected");
-	    	// TODO
-	    }
+	Action Disconnect = new AbstractAction("Disconnect") {
+		public void actionPerformed(ActionEvent e) {	
+			setTitle("Disconnected");
+			// TODO
+		}
 	};
 
-    Action Save = new AbstractAction("Save") {
-	    public void actionPerformed(ActionEvent e) {
-		if(!currentFile.equals("Untitled"))
-		    saveFile(currentFile);
-		else
-		    saveFileAs();
-	    }
+	Action Save = new AbstractAction("Save") {
+		public void actionPerformed(ActionEvent e) {
+			if(!currentFile.equals("Untitled"))
+				saveFile(currentFile);
+			else
+				saveFileAs();
+		}
 	};
 
-    Action SaveAs = new AbstractAction("Save as...") {
-	    public void actionPerformed(ActionEvent e) {
-	    	saveFileAs();
-	    }
+	Action SaveAs = new AbstractAction("Save as...") {
+		public void actionPerformed(ActionEvent e) {
+			saveFileAs();
+		}
 	};
 
-    Action Quit = new AbstractAction("Quit") {
-	    public void actionPerformed(ActionEvent e) {
-	    	saveOld();
-	    	System.exit(0);
-	    }
+	Action Quit = new AbstractAction("Quit") {
+		public void actionPerformed(ActionEvent e) {
+			saveOld();
+			System.exit(0);
+		}
 	};
-	
-    ActionMap m = area1.getActionMap();
 
-    Action Copy = m.get(DefaultEditorKit.copyAction);
-    Action Paste = m.get(DefaultEditorKit.pasteAction);
+	ActionMap m = area1.getActionMap();
 
-    private void saveFileAs() {
-	if(dialog.showSaveDialog(null)==JFileChooser.APPROVE_OPTION)
-	    saveFile(dialog.getSelectedFile().getAbsolutePath());
-    }
-    
-    private void saveOld() {
-    	if(changed) {
-	    if(JOptionPane.showConfirmDialog(this, "Would you like to save "+ currentFile +" ?","Save",JOptionPane.YES_NO_OPTION)== JOptionPane.YES_OPTION)
-		saveFile(currentFile);
-    	}
-    }
-    
-    private void saveFile(String fileName) {
-	try {
-	    FileWriter w = new FileWriter(fileName);
-	    area1.write(w);
-	    w.close();
-	    currentFile = fileName;
-	    changed = false;
-	    Save.setEnabled(false);
+	Action Copy = m.get(DefaultEditorKit.copyAction);
+	Action Paste = m.get(DefaultEditorKit.pasteAction);
+
+	private void saveFileAs() {
+		if(dialog.showSaveDialog(null)==JFileChooser.APPROVE_OPTION)
+			saveFile(dialog.getSelectedFile().getAbsolutePath());
 	}
-	catch(IOException e) {
+
+	private void saveOld() {
+		if(changed) {
+			if(JOptionPane.showConfirmDialog(this, "Would you like to save "+ currentFile +" ?","Save",JOptionPane.YES_NO_OPTION)== JOptionPane.YES_OPTION)
+				saveFile(currentFile);
+		}
 	}
-    }
-    
-    public static void main(String[] arg) {
-    	new DistributedTextEditor();
-    }        
-    
+
+	private void saveFile(String fileName) {
+		try {
+			FileWriter w = new FileWriter(fileName);
+			area1.write(w);
+			w.close();
+			currentFile = fileName;
+			changed = false;
+			Save.setEnabled(false);
+		}
+		catch(IOException e) {
+		}
+	}
+
+	public static void main(String[] arg) {
+		new DistributedTextEditor();
+	}        
+
 }
