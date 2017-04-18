@@ -1,5 +1,6 @@
+import java.io.*;
 
-public class TextRemoveEvent extends MyTextEvent {
+public class TextRemoveEvent extends MyTextEvent implements Serializable {
 
 	private int length;
 	

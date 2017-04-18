@@ -54,7 +54,8 @@ public class EventReplayer implements Runnable {
 						}
 					});
 				} 
-			} catch (Exception _) {
+			} catch (Exception e) {
+				e.printStackTrace();
 				wasInterrupted = true;
 			}
 		}

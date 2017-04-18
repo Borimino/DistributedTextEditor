@@ -24,10 +24,30 @@ public class Connector {
 		}
 	}
 
+	public void disconnect() {
+		try {
+			inStream.close();
+			outStream.close();
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		inStream = null;
+		outStream = null;
+		socket = null;
+	}
+
 	public void listenForClient() {
 		new Thread(new Runnable() {
 			public void run() {
-				socket = waitForConnectionFromClient();
+				try {
+					socket = waitForConnectionFromClient();
+					outStream = new ObjectOutputStream(socket.getOutputStream());
+					inStream = new ObjectInputStream(socket.getInputStream());
+				} catch (IOException e) {
+					// We do nothing on IOExceptions
+				}
+
 			}
 		}).start();
 	}
@@ -38,13 +58,13 @@ public class Connector {
 			ServerSocket serverSocket = new ServerSocket(portNumber);
             res = serverSocket.accept();
         } catch (IOException e) {
-            // We return null on IOExceptions
+			e.printStackTrace();
         }
         return res;
     }
 
 	public boolean isConnected() {
-		return (socket != null);
+		return (socket != null && inStream != null && outStream != null);
 	}
 
 	public Socket getSocket() {
@@ -52,10 +72,29 @@ public class Connector {
 	}
 
 	public MyTextEvent take() {
+		//System.out.println("Trying to take");
 		try {
-			return (MyTextEvent) inStream.readObject();
-		} catch (ClassNotFoundException | IOException e) {
-			// We return null on exceptions
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		if (isConnected()) {
+			try {
+				//System.out.println("Trying to receive");
+				return (MyTextEvent) inStream.readObject();
+			} catch (SocketException e) {
+				// This will probably occur when disconnecting because of a race-condition
+				return null;
+			} catch (EOFException e) {
+				// This means that our peer has disconnected, so we should as well
+				disconnect();
+				return null;
+			} catch (ClassNotFoundException | IOException e) {
+				// We return null on exceptions
+				e.printStackTrace();
+				return null;
+			}
+		} else {
 			return null;
 		}
 	}
@@ -70,6 +109,7 @@ public class Connector {
 							outStream.writeObject(event);
 						}
 					} catch (InterruptedException | IOException e) {
+						e.printStackTrace();
 					}
 				}
 			}

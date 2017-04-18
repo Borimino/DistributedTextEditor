@@ -1,9 +1,10 @@
+import java.io.*;
 /**
  * 
  * @author Jesper Buus Nielsen
  *
  */
-public class MyTextEvent {
+public class MyTextEvent implements Serializable{
 	MyTextEvent(int offset) {
 		this.offset = offset;
 	}

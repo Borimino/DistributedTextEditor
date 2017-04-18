@@ -1,9 +1,10 @@
+import java.io.*;
 /**
  * 
  * @author Jesper Buus Nielsen
  *
  */
-public class TextInsertEvent extends MyTextEvent {
+public class TextInsertEvent extends MyTextEvent implements Serializable {
 
 	private String text;
 	
