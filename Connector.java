@@ -12,13 +12,11 @@ public class Connector {
 	 * Connects to the server on IP address serverName and port number portNumber.
 	 */
 	public void connectToServer(String serverName) {
-		Socket res = null;
 		try {
-			res = new Socket(serverName,portNumber);
+			this.socket = new Socket(serverName,portNumber);
 		} catch (IOException e) {
 			// We return null on IOExceptions
 		}
-		socket = res;
 	}
 
 	public void listenForClient() {
