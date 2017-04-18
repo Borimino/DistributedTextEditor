@@ -72,7 +72,6 @@ public class Connector {
 	}
 
 	public MyTextEvent take() {
-		//System.out.println("Trying to take");
 		try {
 			Thread.sleep(1);
 		} catch (InterruptedException e) {
@@ -80,7 +79,6 @@ public class Connector {
 		}
 		if (isConnected()) {
 			try {
-				//System.out.println("Trying to receive");
 				return (MyTextEvent) inStream.readObject();
 			} catch (SocketException e) {
 				// This will probably occur when disconnecting because of a race-condition
