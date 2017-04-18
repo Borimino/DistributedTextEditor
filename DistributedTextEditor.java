@@ -125,11 +125,9 @@ public class DistributedTextEditor extends JFrame {
 			area1.setText("");
 			setTitle("Connecting to " + ipaddress.getText() + ":" + Connector.portNumber + "...");
 			connector.connectToServer(ipaddress.getText());
-			if (connector.isConnected())
-			{
+			if (connector.isConnected()) {
 				setTitle("Connected to " + ipaddress.getText() + ":" + connector.portNumber);
-			} else
-			{
+			} else {
 				setTitle("Not able to connect to " + ipaddress.getText() + ":" + connector.portNumber);
 			}
 			changed = false;
