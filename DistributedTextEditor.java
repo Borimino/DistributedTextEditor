@@ -103,7 +103,6 @@ public class DistributedTextEditor extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			saveOld();
 			area1.setText("");
-			// TODO: Become a server listening for connections on some port.
 			try {
 				String portString = portNumber.getText();
 				//int portNumber = Integer.parseInt(portString);
@@ -113,13 +112,9 @@ public class DistributedTextEditor extends JFrame {
 				changed = false;
 				Save.setEnabled(false);
 				SaveAs.setEnabled(false);
-				//connector = new Connector();
 				connector.listenForClient();
-				//serverListener = new ServerListener(portNumber);
-				//new Thread(serverListener).start();
 			} catch (UnknownHostException ex) {
 				// TODO: Handle exception
-
 			}
 		}
 	};
@@ -129,7 +124,6 @@ public class DistributedTextEditor extends JFrame {
 			saveOld();
 			area1.setText("");
 			setTitle("Connecting to " + ipaddress.getText() + ":" + Connector.portNumber + "...");
-			//connector = new Connector();
 			connector.connectToServer(ipaddress.getText());
 			if (connector.isConnected())
 			{
