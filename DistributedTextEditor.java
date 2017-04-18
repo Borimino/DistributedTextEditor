@@ -140,7 +140,6 @@ public class DistributedTextEditor extends JFrame {
 		public void actionPerformed(ActionEvent e) {	
 			setTitle("Disconnected");
 			connector.disconnect();
-			// TODO
 		}
 	};
 
