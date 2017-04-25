@@ -9,6 +9,7 @@ public class Connector {
 	protected ObjectInputStream inStream;
 	protected ObjectOutputStream outStream;
 
+	protected static ServerSocket serverSocket;
 
 	/**
 	 *
@@ -38,8 +39,15 @@ public class Connector {
 	}
 
 	public void listenForClient() {
-		new Thread(new Runnable() {
-			public void run() {
+		if (serverSocket == null) {
+			try {
+				serverSocket = new ServerSocket(portNumber);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		//new Thread(new Runnable() {
+			//public void run() {
 				try {
 					socket = waitForConnectionFromClient();
 					outStream = new ObjectOutputStream(socket.getOutputStream());
@@ -48,14 +56,13 @@ public class Connector {
 					// We do nothing on IOExceptions
 				}
 
-			}
-		}).start();
+			//}
+		//}).start();
 	}
 
     private Socket waitForConnectionFromClient() {
         Socket res = null;
 		try {
-			ServerSocket serverSocket = new ServerSocket(portNumber);
             res = serverSocket.accept();
         } catch (IOException e) {
 			e.printStackTrace();
@@ -72,12 +79,17 @@ public class Connector {
 	}
 
 	public MyTextEvent take() {
+		//TODO: Get rid of the Thread.sleep call.
+		//Could maybe be done by calling socket.isClosed and stream.isReady in isConnected.
+		//Could maybe be done by locking the method.
 		try {
 			Thread.sleep(1);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		if (isConnected()) {
+			System.out.println("Taking from inStream");
+
 			try {
 				return (MyTextEvent) inStream.readObject();
 			} catch (SocketException e) {
@@ -104,6 +116,8 @@ public class Connector {
 					try {
 						MyTextEvent event = dec.take();
 						if (isConnected()) {
+							System.out.println("Sending event");
+
 							outStream.writeObject(event);
 						}
 					} catch (InterruptedException | IOException e) {
@@ -113,5 +127,16 @@ public class Connector {
 			}
 		}).start();
 	}
+
+	public void send(MyTextEvent event) {
+		try {
+			if (isConnected()) {
+				outStream.writeObject(event);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 }

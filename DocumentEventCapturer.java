@@ -44,8 +44,9 @@ public class DocumentEventCapturer extends DocumentFilter {
         /* Queue a copy of the event and then modify the textarea */
 		if (isEnabled) {
 			eventHistory.add(new TextInsertEvent(offset, str));		
+		} else {
+			super.insertString(fb, offset, str, a);
 		}
-        super.insertString(fb, offset, str, a);
     }	
 
     public void remove(FilterBypass fb, int offset, int length) 					
@@ -53,8 +54,9 @@ public class DocumentEventCapturer extends DocumentFilter {
         /* Queue a copy of the event and then modify the textarea */
 		if (isEnabled) {
 			eventHistory.add(new TextRemoveEvent(offset, length));		
+		} else {
+			super.remove(fb, offset, length);
 		}
-        super.remove(fb, offset, length);
     }
 
     public void replace(FilterBypass fb, int offset,
@@ -68,8 +70,9 @@ public class DocumentEventCapturer extends DocumentFilter {
 				eventHistory.add(new TextRemoveEvent(offset, length));		
 			}		
 			eventHistory.add(new TextInsertEvent(offset, str));				
+		} else {
+			super.replace(fb, offset, length, str, a);
 		}
-        super.replace(fb, offset, length, str, a);
     }    
 
 	public void disable() {

@@ -27,6 +27,7 @@ public class DistributedTextEditor extends JFrame {
 	private DocumentEventCapturer dec = new DocumentEventCapturer();
 
 	private Connector connector = new Connector();
+	private Sequencer sequencer;
 
 	public DistributedTextEditor() {
 		area1.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -112,7 +113,14 @@ public class DistributedTextEditor extends JFrame {
 				changed = false;
 				Save.setEnabled(false);
 				SaveAs.setEnabled(false);
-				connector.listenForClient();
+				sequencer = new Sequencer();
+				sequencer.listenForClients();
+				//TODO: Once the Sequencer has "started up", connect to the Sequencer.
+				while (!connector.isConnected()) {
+					connector.connectToServer("localhost");
+				}
+				sequencer.startSendThread();
+				//connector.listenForClient();
 			} catch (UnknownHostException ex) {
 				// TODO: Handle exception
 			}
