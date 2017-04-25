@@ -86,7 +86,7 @@ public class DistributedTextEditor extends JFrame {
 				"Then figure out how it works.\n", 0);
 
 		connector.startSendThread(dec);
-		er = new EventReplayer(connector, area1);
+		er = new EventReplayer(connector, area1, dec);
 		ert = new Thread(er);
 		ert.start();
 	}

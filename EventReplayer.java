@@ -14,10 +14,12 @@ public class EventReplayer implements Runnable {
 
 	private Connector con;
 	private JTextArea area;
+	private DocumentEventCapturer dec;
 
-	public EventReplayer(Connector con, JTextArea area) {
+	public EventReplayer(Connector con, JTextArea area, DocumentEventCapturer dec) {
 		this.con = con;
 		this.area = area;
+		this.dec = dec;
 	}
 
 	public void run() {
@@ -30,7 +32,9 @@ public class EventReplayer implements Runnable {
 					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							try {
+								dec.disable();
 								area.insert(tie.getText(), tie.getOffset());				
+								dec.enable();
 							} catch (Exception e) {
 								System.err.println(e);
 								/* We catch all axceptions, as an uncaught exception would make the 
@@ -44,7 +48,9 @@ public class EventReplayer implements Runnable {
 					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							try {
+								dec.disable();
 								area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
+								dec.enable();
 							} catch (Exception e) {
 								System.err.println(e);
 								/* We catch all axceptions, as an uncaught exception would make the 
