@@ -32,6 +32,8 @@ public class Sequencer {
 						eventHistory.add(event);
 					} else {
 						if (!connector.isConnected()) {
+							System.out.println("Client is no longer connected");
+
 							clients.remove(connector);
 						}
 					}
