@@ -58,11 +58,11 @@ public class EventReplayer implements Runnable {
 								dec.disable();
 								copyArea.insert(tie.getText(), tie.getOffset());
 
-								//int tmpCaretPosition = area.getCaretPosition();
+								int tmpCaretPosition = area.getCaretPosition();
 								//tmpCaretPosition += tie.getText().length();
 								//area.setCaretPosition(tmpCaretPosition);
 
-								int offset = isLocal ? 0 : tie.getText().length();
+								int offset = (isLocal || tmpCaretPosition <= tie.getOffset()) ? 0 : tie.getText().length();
 
 								dec.enable();
 								resetDisplayedArea(offset);
@@ -83,11 +83,11 @@ public class EventReplayer implements Runnable {
 							try {
 								dec.disable();
 								copyArea.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
-								//int tmpCaretPosition = area.getCaretPosition();
+								int tmpCaretPosition = area.getCaretPosition();
 								//tmpCaretPosition += tre.getLength();
 								//area.setCaretPosition(tmpCaretPosition);
 
-								int offset = isLocal ? 0 : -1 * tre.getLength();
+								int offset = (isLocal || tmpCaretPosition <= tre.getOffset()) ? 0 : -1 * tre.getLength();
 								
 								dec.enable();
 								resetDisplayedArea(offset);
