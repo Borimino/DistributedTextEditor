@@ -88,7 +88,7 @@ public class Connector {
 			e.printStackTrace();
 		}
 		if (isConnected()) {
-			System.out.println("Taking from inStream");
+			//System.out.println("Taking from inStream");
 
 			try {
 				return (MyTextEvent) inStream.readObject();
@@ -116,7 +116,7 @@ public class Connector {
 					try {
 						MyTextEvent event = dec.take();
 						if (isConnected()) {
-							System.out.println("Sending event");
+							//System.out.println("Sending event");
 
 							outStream.writeObject(event);
 						}
