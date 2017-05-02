@@ -26,6 +26,7 @@ public class DocumentEventCapturer extends DocumentFilter {
      */
     protected LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
 	protected boolean isEnabled = true;
+  private EventReplayer eventReplayer;
 
     /**	
      * If the queue is empty, then the call will block until an element arrives.
@@ -43,7 +44,10 @@ public class DocumentEventCapturer extends DocumentFilter {
 
         /* Queue a copy of the event and then modify the textarea */
 		if (isEnabled) {
-			eventHistory.add(new TextInsertEvent(offset, str));		
+      MyTextEvent event = new TextInsertEvent(offset, str);
+			eventHistory.add(event);
+      eventReplayer.addLocalEvent(event);
+			super.insertString(fb, offset, str, a);
 		} else {
 			super.insertString(fb, offset, str, a);
 		}
@@ -53,7 +57,10 @@ public class DocumentEventCapturer extends DocumentFilter {
         throws BadLocationException {
         /* Queue a copy of the event and then modify the textarea */
 		if (isEnabled) {
-			eventHistory.add(new TextRemoveEvent(offset, length));		
+      MyTextEvent event = new TextRemoveEvent(offset, length);
+			eventHistory.add(event);
+      eventReplayer.addLocalEvent(event);
+			super.remove(fb, offset, length);
 		} else {
 			super.remove(fb, offset, length);
 		}
@@ -67,13 +74,18 @@ public class DocumentEventCapturer extends DocumentFilter {
         /* Queue a copy of the event and then modify the text */
 		if (isEnabled) {
 			if (length > 0) {
-				eventHistory.add(new TextRemoveEvent(offset, length));		
-			}		
-			eventHistory.add(new TextInsertEvent(offset, str));				
+        MyTextEvent event = new TextRemoveEvent(offset, length);
+				eventHistory.add(event);
+        eventReplayer.addLocalEvent(event);
+			}
+      MyTextEvent event = new TextInsertEvent(offset, str);
+			eventHistory.add(event);
+      eventReplayer.addLocalEvent(event);
+			super.replace(fb, offset, length, str, a);
 		} else {
 			super.replace(fb, offset, length, str, a);
 		}
-    }    
+    }
 
 	public void disable() {
 		isEnabled = false;
@@ -82,4 +94,8 @@ public class DocumentEventCapturer extends DocumentFilter {
 	public void enable() {
 		isEnabled = true;
 	}
+
+  public void setEventReplayer(EventReplayer eventReplayer) {
+    this.eventReplayer = eventReplayer;
+  }
 }

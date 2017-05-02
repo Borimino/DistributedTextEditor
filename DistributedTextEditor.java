@@ -83,12 +83,13 @@ public class DistributedTextEditor extends JFrame {
 		area1.addKeyListener(k1);
 		setTitle("Disconnected");
 		setVisible(true);
-		area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
-				"Try to type and delete stuff in the top area.\n" + 
-				"Then figure out how it works.\n", 0);
+		//area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
+        //"Try to type and delete stuff in the top area.\n" + 
+        //"Then figure out how it works.\n", 0);
 
 		connector.startSendThread(dec);
-		er = new EventReplayer(connector, area1, dec);
+		er = new EventReplayer(connector, area1, dec, area2);
+    dec.setEventReplayer(er);
 		ert = new Thread(er);
 		ert.start();
 	}
