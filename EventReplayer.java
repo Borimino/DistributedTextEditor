@@ -87,7 +87,7 @@ public class EventReplayer implements Runnable {
 								//tmpCaretPosition += tre.getLength();
 								//area.setCaretPosition(tmpCaretPosition);
 
-								int offset = isLocal ? 0 : tre.getLength();
+								int offset = isLocal ? 0 : -1 * tre.getLength();
 								
 								dec.enable();
 								resetDisplayedArea(offset);
