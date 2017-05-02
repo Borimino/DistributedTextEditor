@@ -35,14 +35,14 @@ public class EventReplayer implements Runnable {
 				if ( mte == null ) continue;
 				// If the event is the same as the first event in the localEvents list, then remove the event from local events.
 
-				System.out.println("EventUUID: " + mte.getUUID().toString());
-				if (localEvents.peek() != null) {
-					System.out.println("LocalEventUUID: " + localEvents.peek().getUUID().toString());
+				//System.out.println("EventUUID: " + mte.getUUID().toString());
+				//if (localEvents.peek() != null) {
+					//System.out.println("LocalEventUUID: " + localEvents.peek().getUUID().toString());
 
-				}
+				//}
 				boolean isLocal = localEvents.peek() != null && localEvents.peek().getUUID().equals(mte.getUUID());
 				if (isLocal) {
-					System.out.println("Found match: " + localEvents.peek().getUUID().toString());
+					//System.out.println("Found match: " + localEvents.peek().getUUID().toString());
 					localEvents.take();
 				}
 				if (mte instanceof TextInsertEvent) {
