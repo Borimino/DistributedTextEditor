@@ -1,5 +1,6 @@
 import javax.swing.JTextArea;
 import java.awt.EventQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 
@@ -15,11 +16,15 @@ public class EventReplayer implements Runnable {
 	private Connector con;
 	private JTextArea area;
 	private DocumentEventCapturer dec;
+  private LinkedBlockingQueue<MyTextEvent> localEvents;
+  private JTextArea copyArea;
 
-	public EventReplayer(Connector con, JTextArea area, DocumentEventCapturer dec) {
+	public EventReplayer(Connector con, JTextArea area, DocumentEventCapturer dec, JTextArea copyArea) {
 		this.con = con;
 		this.area = area;
 		this.dec = dec;
+    this.copyArea = copyArea;
+    localEvents = new LinkedBlockingQueue<MyTextEvent>();
 	}
 
 	public void run() {
@@ -27,17 +32,30 @@ public class EventReplayer implements Runnable {
 		while (!wasInterrupted) {
 			try {
 				MyTextEvent mte = con.take();
+        if ( mte == null ) continue;
+        // If the event is the same as the first event in the localEvents list, then remove the event from local events.
+
+        System.out.println("EventUUID: " + mte.getUUID().toString());
+        if (localEvents.peek() != null) {
+          System.out.println("LocalEventUUID: " + localEvents.peek().getUUID().toString());
+
+        }
+        if (localEvents.peek() != null && localEvents.peek().getUUID().equals(mte.getUUID())) {
+            System.out.println("Found match: " + localEvents.peek().getUUID().toString());
+            localEvents.take();
+        }
 				if (mte instanceof TextInsertEvent) {
 					final TextInsertEvent tie = (TextInsertEvent)mte;
 					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							try {
 								dec.disable();
-								area.insert(tie.getText(), tie.getOffset());				
+								copyArea.insert(tie.getText(), tie.getOffset());
 								dec.enable();
+                resetDisplayedArea();
 							} catch (Exception e) {
 								System.err.println(e);
-								/* We catch all axceptions, as an uncaught exception would make the 
+								/* We catch all axceptions, as an uncaught exception would make the
 								 * EDT unwind, which is now healthy.
 								 */
 							}
@@ -49,8 +67,9 @@ public class EventReplayer implements Runnable {
 						public void run() {
 							try {
 								dec.disable();
-								area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
+								copyArea.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
 								dec.enable();
+                resetDisplayedArea();
 							} catch (Exception e) {
 								System.err.println(e);
 								/* We catch all axceptions, as an uncaught exception would make the 
@@ -59,7 +78,7 @@ public class EventReplayer implements Runnable {
 							}
 						}
 					});
-				} 
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				wasInterrupted = true;
@@ -68,10 +87,41 @@ public class EventReplayer implements Runnable {
 		System.out.println("I'm the thread running the EventReplayer, now I die!");
 	}
 
-	public void waitForOneSecond() {
-		try {
-			Thread.sleep(1000);
-		} catch(InterruptedException _) {
-		}
-	}
+  public void addLocalEvent(MyTextEvent event) {
+    try {
+      localEvents.put(event);
+    } catch (InterruptedException e) {
+      // TODO: Handle interruption
+    }
+  }
+
+  private void resetDisplayedArea() {
+    dec.disable();
+    int caretPosition = area.getCaretPosition();
+    area.setText(copyArea.getText());
+    for(MyTextEvent event : localEvents) {
+      if (event instanceof TextInsertEvent) {
+        final TextInsertEvent tie = (TextInsertEvent)event;
+        try {
+          area.insert(tie.getText(), tie.getOffset());
+        } catch (Exception e) {
+          System.err.println(e);
+          /* We catch all axceptions, as an uncaught exception would make the
+           * EDT unwind, which is now healthy.
+           */
+        }
+      } else if (event instanceof TextRemoveEvent) {
+        final TextRemoveEvent tre = (TextRemoveEvent)event;
+        try {
+          area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
+        } catch (Exception e) {
+          System.err.println(e);
+        }
+      }
+    }
+    area.setCaretPosition(caretPosition);
+    // TODO: Handle caret errors eg. out of bounds.
+    dec.enable();
+  }
 }
+
