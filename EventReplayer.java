@@ -32,18 +32,19 @@ public class EventReplayer implements Runnable {
 		while (!wasInterrupted) {
 			try {
 				MyTextEvent mte = con.take();
-        if ( mte == null ) continue;
-        // If the event is the same as the first event in the localEvents list, then remove the event from local events.
+				if ( mte == null ) continue;
+				// If the event is the same as the first event in the localEvents list, then remove the event from local events.
 
-        System.out.println("EventUUID: " + mte.getUUID().toString());
-        if (localEvents.peek() != null) {
-          System.out.println("LocalEventUUID: " + localEvents.peek().getUUID().toString());
+				System.out.println("EventUUID: " + mte.getUUID().toString());
+				if (localEvents.peek() != null) {
+					System.out.println("LocalEventUUID: " + localEvents.peek().getUUID().toString());
 
-        }
-        if (localEvents.peek() != null && localEvents.peek().getUUID().equals(mte.getUUID())) {
-            System.out.println("Found match: " + localEvents.peek().getUUID().toString());
-            localEvents.take();
-        }
+				}
+				boolean isLocal = localEvents.peek() != null && localEvents.peek().getUUID().equals(mte.getUUID());
+				if (isLocal) {
+					System.out.println("Found match: " + localEvents.peek().getUUID().toString());
+					localEvents.take();
+				}
 				if (mte instanceof TextInsertEvent) {
 					final TextInsertEvent tie = (TextInsertEvent)mte;
 					/* TODO: This should be replaced
@@ -56,8 +57,15 @@ public class EventReplayer implements Runnable {
 							try {
 								dec.disable();
 								copyArea.insert(tie.getText(), tie.getOffset());
+
+								//int tmpCaretPosition = area.getCaretPosition();
+								//tmpCaretPosition += tie.getText().length();
+								//area.setCaretPosition(tmpCaretPosition);
+
+								int offset = isLocal ? 0 : tie.getText().length();
+
 								dec.enable();
-                resetDisplayedArea();
+								resetDisplayedArea(offset);
 							} catch (Exception e) {
 								System.err.println(e);
 								/* We catch all axceptions, as an uncaught exception would make the
@@ -75,8 +83,14 @@ public class EventReplayer implements Runnable {
 							try {
 								dec.disable();
 								copyArea.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
+								//int tmpCaretPosition = area.getCaretPosition();
+								//tmpCaretPosition += tre.getLength();
+								//area.setCaretPosition(tmpCaretPosition);
+
+								int offset = isLocal ? 0 : tre.getLength();
+								
 								dec.enable();
-                resetDisplayedArea();
+								resetDisplayedArea(offset);
 							} catch (Exception e) {
 								System.err.println(e);
 								/* We catch all axceptions, as an uncaught exception would make the 
@@ -102,7 +116,7 @@ public class EventReplayer implements Runnable {
     }
   }
 
-  private void resetDisplayedArea() {
+  private void resetDisplayedArea(int caretOffset) {
     dec.disable();
     int caretPosition = area.getCaretPosition();
     area.setText(copyArea.getText());
@@ -126,7 +140,7 @@ public class EventReplayer implements Runnable {
         }
       }
     }
-    area.setCaretPosition(caretPosition);
+    area.setCaretPosition(caretPosition + caretOffset);
     // TODO: Handle caret errors eg. out of bounds.
     dec.enable();
   }
