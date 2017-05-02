@@ -45,11 +45,12 @@ public class DistributedTextEditor extends JFrame {
 					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		content.add(scroll1,BorderLayout.CENTER);
 
-		JScrollPane scroll2 = 
-			new JScrollPane(area2, 
-					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		content.add(scroll2,BorderLayout.CENTER);	
+		// Area2 is used to contain a copy of what the server has guarantied us has happened
+		//JScrollPane scroll2 = 
+			//new JScrollPane(area2, 
+					//JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+					//JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		//content.add(scroll2,BorderLayout.CENTER);	
 
 		content.add(ipaddress,BorderLayout.CENTER);	
 		content.add(portNumber,BorderLayout.CENTER);	

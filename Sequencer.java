@@ -35,6 +35,7 @@ public class Sequencer {
 							System.out.println("Client is no longer connected");
 
 							clients.remove(connector);
+							break;
 						}
 					}
 				}

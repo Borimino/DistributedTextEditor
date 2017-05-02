@@ -29,6 +29,11 @@ public class EventReplayer implements Runnable {
 				MyTextEvent mte = con.take();
 				if (mte instanceof TextInsertEvent) {
 					final TextInsertEvent tie = (TextInsertEvent)mte;
+					/* TODO: This should be replaced
+					 * We should instead add the event to the COPY, remove the event from the local buffer, if it is in there, and replace the display with the COPY.
+					 * We also need to place the cursor in its original position, if possible.
+					 * If the cursor is placed outside of the text, it should be set to the last position in the text.
+					 */
 					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							try {
@@ -45,6 +50,8 @@ public class EventReplayer implements Runnable {
 					});
 				} else if (mte instanceof TextRemoveEvent) {
 					final TextRemoveEvent tre = (TextRemoveEvent)mte;
+					/* TODO: Same as above
+					 */
 					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							try {
