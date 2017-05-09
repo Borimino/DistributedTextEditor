@@ -28,6 +28,7 @@ public class DistributedTextEditor extends JFrame {
 
 	private Connector connector = new Connector();
 	private Sequencer sequencer;
+	private ClientRedirector redirector = new ClientRedirector(connector);
 
 	public DistributedTextEditor() {
 		area1.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -138,6 +139,7 @@ public class DistributedTextEditor extends JFrame {
 			connector.connectToServer(ipaddress.getText());
 			if (connector.isConnected()) {
 				setTitle("Connected to " + ipaddress.getText() + ":" + connector.portNumber);
+				redirector.start();
 			} else {
 				setTitle("Not able to connect to " + ipaddress.getText() + ":" + connector.portNumber);
 			}
@@ -151,6 +153,7 @@ public class DistributedTextEditor extends JFrame {
 		public void actionPerformed(ActionEvent e) {	
 			setTitle("Disconnected");
 			connector.disconnect();
+			redirector.stop();
 		}
 	};
 

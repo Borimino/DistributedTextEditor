@@ -175,7 +175,7 @@ public class Connector {
 		}).start();
 	}
 
-	public void send(MyTextEvent event) {
+	public void send(MyMessage event) {
 		try {
 			if (isConnected()) {
 				outStream.writeObject(event);
