@@ -16,6 +16,7 @@ public class Sequencer {
 				while (true) {
 					Connector connector = new Connector();
 					connector.listenForClient();
+					connector.startReceiveThread();
 					addClient(connector);
 				}
 			}

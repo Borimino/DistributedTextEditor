@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Connector {
 
@@ -8,6 +9,7 @@ public class Connector {
 	protected Socket socket;
 	protected ObjectInputStream inStream;
 	protected ObjectOutputStream outStream;
+	protected LinkedBlockingQueue<MyTextEvent> textEvents = new LinkedBlockingQueue<MyTextEvent>();
 
 	protected static ServerSocket serverSocket;
 
@@ -78,6 +80,41 @@ public class Connector {
 		return socket;
 	}
 
+	//Make a thread that collect messages from inStream and treats them appropriately.
+	//		MyTextEvent goes in a Queue
+	//		SequencerRedirect triggers connectToServer on the corresponding server
+	public void startReceiveThread() {
+		new Thread (new Runnable() {
+			public void run () {
+				while (true) {
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
+					if (isConnected()) {
+						try {
+							MyMessage message = (MyMessage) inStream.readObject();
+							if (message instanceof MyTextEvent) {
+								textEvents.add( (MyTextEvent) message);
+							}
+						} catch (SocketException e) {
+							// This will probably occur when disconnecting because of a race-condition
+						} catch (EOFException e) {
+							// This means that our peer has disconnected, so we should as well
+							disconnect();
+						} catch (ClassNotFoundException | IOException e) {
+							e.printStackTrace();
+						}
+					}
+
+				}
+			}
+		}).start();
+	}
+
+	/*
 	public MyTextEvent take() {
 		//TODO: Get rid of the Thread.sleep call.
 		//Could maybe be done by calling socket.isClosed and stream.isReady in isConnected.
@@ -105,6 +142,16 @@ public class Connector {
 				return null;
 			}
 		} else {
+			return null;
+		}
+	}
+	*/
+	//TODO: Take events from a Queue instead of from inStream
+	public MyTextEvent take() {
+		try {
+			return textEvents.take();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
