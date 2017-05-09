@@ -6,10 +6,6 @@ public class Sequencer {
 	private ArrayList<Connector> clients = new ArrayList<Connector>();
 	private LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
 
-	public Sequencer() {
-		
-	}
-
 	public void listenForClients() {
 		new Thread (new Runnable() {
 			public void run() {
