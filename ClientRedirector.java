@@ -10,11 +10,11 @@ public class ClientRedirector {
 		this.connector = connector;
 	}
 	
-	public void start() {
+	public void start(int portNumber) {
 		thread = new Thread (new Runnable() {
 			public void run() {
 				while (true) {
-					redirectConnector.listenForClient();
+					redirectConnector.listenForClient(portNumber);
 					InetAddress address = connector.getSocket().getInetAddress();
 					redirectConnector.send(new RedirectMessage(address));
 				}

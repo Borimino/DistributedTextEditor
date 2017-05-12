@@ -13,7 +13,8 @@ public class DistributedTextEditor extends JFrame {
 	private JTextArea area1 = new JTextArea(20,120);
 	private JTextArea area2 = new JTextArea(20,120);     
 	private JTextField ipaddress = new JTextField("IP address here");     
-	private JTextField portNumber = new JTextField("Port number here");     
+	private JTextField portNumber = new JTextField("Server's port number here");     
+	private JTextField portNumberSelf = new JTextField("Own port number here");     
 
 	private EventReplayer er;
 	private Thread ert; 
@@ -55,6 +56,7 @@ public class DistributedTextEditor extends JFrame {
 
 		content.add(ipaddress,BorderLayout.CENTER);	
 		content.add(portNumber,BorderLayout.CENTER);	
+		content.add(portNumberSelf,BorderLayout.CENTER);	
 
 		JMenuBar JMB = new JMenuBar();
 		setJMenuBar(JMB);
@@ -109,19 +111,21 @@ public class DistributedTextEditor extends JFrame {
 			saveOld();
 			area1.setText("");
 			try {
-				String portString = portNumber.getText();
+				//String portString = portNumber.getText();
 				//int portNumber = Integer.parseInt(portString);
+				String portStringSelf = portNumberSelf.getText();
+				int portNumberSelf = Integer.parseInt(portStringSelf);
 				InetAddress localhost = InetAddress.getLocalHost();
 				String localhostAddress = localhost.getHostAddress();
-				setTitle("I'm listening on " + localhostAddress + ":" + Connector.portNumber);
+				setTitle("I'm listening on " + localhostAddress + ":" + portNumberSelf);
 				changed = false;
 				Save.setEnabled(false);
 				SaveAs.setEnabled(false);
 				sequencer = new Sequencer();
-				sequencer.listenForClients();
+				sequencer.listenForClients(portNumberSelf);
 				//TODO: Once the Sequencer has "started up", connect to the Sequencer.
 				while (!connector.isConnected()) {
-					connector.connectToServer("localhost");
+					connector.connectToServer("localhost", portNumberSelf);
 				}
 				sequencer.startSendThread();
 				//connector.listenForClient();
@@ -133,15 +137,19 @@ public class DistributedTextEditor extends JFrame {
 
 	Action Connect = new AbstractAction("Connect") {
 		public void actionPerformed(ActionEvent e) {
+			String portString = portNumber.getText();
+			int portNumber = Integer.parseInt(portString);
+			String portStringSelf = portNumberSelf.getText();
+			int portNumberSelf = Integer.parseInt(portStringSelf);
 			saveOld();
 			area1.setText("");
-			setTitle("Connecting to " + ipaddress.getText() + ":" + Connector.portNumber + "...");
-			connector.connectToServer(ipaddress.getText());
+			setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber + "...");
+			connector.connectToServer(ipaddress.getText(), portNumber);
 			if (connector.isConnected()) {
-				setTitle("Connected to " + ipaddress.getText() + ":" + connector.portNumber);
-				redirector.start();
+				setTitle("Connected to " + ipaddress.getText() + ":" + portNumber);
+				redirector.start(portNumberSelf);
 			} else {
-				setTitle("Not able to connect to " + ipaddress.getText() + ":" + connector.portNumber);
+				setTitle("Not able to connect to " + ipaddress.getText() + ":" + portNumber);
 			}
 			changed = false;
 			Save.setEnabled(false);

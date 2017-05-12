@@ -4,6 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Connector {
 
+	//TODO: Needs to be more dynamic
 	protected static final int portNumber = 40305;
 
 	protected Socket socket;
@@ -17,7 +18,7 @@ public class Connector {
 	 *
 	 * Connects to the server on IP address serverName and port number portNumber.
 	 */
-	public void connectToServer(String serverName) {
+	public void connectToServer(String serverName, int portNumber) {
 		try {
 			this.socket = new Socket(serverName,portNumber);
 			this.inStream = new ObjectInputStream(socket.getInputStream());
@@ -40,7 +41,7 @@ public class Connector {
 		socket = null;
 	}
 
-	public void listenForClient() {
+	public void listenForClient(int portNumber) {
 		if (serverSocket == null) {
 			try {
 				serverSocket = new ServerSocket(portNumber);

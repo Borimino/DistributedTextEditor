@@ -6,12 +6,12 @@ public class Sequencer {
 	private ArrayList<Connector> clients = new ArrayList<Connector>();
 	private LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
 
-	public void listenForClients() {
+	public void listenForClients(int portNumber) {
 		new Thread (new Runnable() {
 			public void run() {
 				while (true) {
 					Connector connector = new Connector();
-					connector.listenForClient();
+					connector.listenForClient(portNumber);
 					connector.startReceiveThread();
 					addClient(connector);
 				}
