@@ -15,7 +15,7 @@ public class DistributedTextEditor extends JFrame {
 	private JTextField portNumber = new JTextField("Server's port number here");     
 	private JTextField portNumberSelf = new JTextField("Own port number here");     
 
-	private EventReplayer er;
+	private TextAreaSyncronizer textAreaSyncronizer;
 	private Thread ert; 
 
 	private JFileChooser dialog = 
@@ -78,9 +78,9 @@ public class DistributedTextEditor extends JFrame {
 		setVisible(true);
 		connector.startSendThread(dec);
 		connector.startReceiveThread();
-		er = new EventReplayer(connector, area1, dec);
-    dec.setEventReplayer(er);
-		ert = new Thread(er);
+		textAreaSyncronizer = new TextAreaSyncronizer(connector, area1, dec);
+    dec.setTextAreaSyncronizer(textAreaSyncronizer);
+		ert = new Thread(textAreaSyncronizer);
 		ert.start();
 	}
 

@@ -26,7 +26,7 @@ public class DocumentEventCapturer extends DocumentFilter {
      */
     protected LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
 	protected boolean isEnabled = true;
-  private EventReplayer eventReplayer;
+  private TextAreaSyncronizer textAreaSyncronizer;
 
     /**	
      * If the queue is empty, then the call will block until an element arrives.
@@ -46,7 +46,7 @@ public class DocumentEventCapturer extends DocumentFilter {
 		if (isEnabled) {
       MyTextEvent event = new TextInsertEvent(offset, str);
 			eventHistory.add(event);
-      eventReplayer.addLocalEvent(event);
+      textAreaSyncronizer.addLocalEvent(event);
 			super.insertString(fb, offset, str, a);
 		} else {
 			super.insertString(fb, offset, str, a);
@@ -59,7 +59,7 @@ public class DocumentEventCapturer extends DocumentFilter {
 		if (isEnabled) {
       MyTextEvent event = new TextRemoveEvent(offset, length);
 			eventHistory.add(event);
-      eventReplayer.addLocalEvent(event);
+      textAreaSyncronizer.addLocalEvent(event);
 			super.remove(fb, offset, length);
 		} else {
 			super.remove(fb, offset, length);
@@ -76,11 +76,11 @@ public class DocumentEventCapturer extends DocumentFilter {
 			if (length > 0) {
         MyTextEvent event = new TextRemoveEvent(offset, length);
 				eventHistory.add(event);
-        eventReplayer.addLocalEvent(event);
+        textAreaSyncronizer.addLocalEvent(event);
 			}
       MyTextEvent event = new TextInsertEvent(offset, str);
 			eventHistory.add(event);
-      eventReplayer.addLocalEvent(event);
+      textAreaSyncronizer.addLocalEvent(event);
 			super.replace(fb, offset, length, str, a);
 		} else {
 			super.replace(fb, offset, length, str, a);
@@ -95,7 +95,7 @@ public class DocumentEventCapturer extends DocumentFilter {
 		isEnabled = true;
 	}
 
-  public void setEventReplayer(EventReplayer eventReplayer) {
-    this.eventReplayer = eventReplayer;
+  public void setTextAreaSyncronizer(TextAreaSyncronizer textAreaSyncronizer) {
+    this.textAreaSyncronizer = textAreaSyncronizer;
   }
 }

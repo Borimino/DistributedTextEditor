@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Jesper Buus Nielsen
  *
  */
-public class EventReplayer implements Runnable {
+public class TextAreaSyncronizer implements Runnable {
 
 	private Connector con;
 	private JTextArea area;
@@ -19,7 +19,7 @@ public class EventReplayer implements Runnable {
   private LinkedBlockingQueue<MyTextEvent> localEvents;
   private JTextArea copyArea;
 
-	public EventReplayer(Connector con, JTextArea area, DocumentEventCapturer dec) {
+	public TextAreaSyncronizer(Connector con, JTextArea area, DocumentEventCapturer dec) {
 		this.con = con;
 		this.area = area;
 		this.dec = dec;
