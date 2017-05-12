@@ -1,16 +1,15 @@
 import java.net.*;
 import java.io.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayList;
 
 public class Connector {
-
-	//TODO: Needs to be more dynamic
-	protected static final int portNumber = 40305;
 
 	protected Socket socket;
 	protected ObjectInputStream inStream;
 	protected ObjectOutputStream outStream;
 	protected LinkedBlockingQueue<MyTextEvent> textEvents = new LinkedBlockingQueue<MyTextEvent>();
+	protected ArrayList<Peer> peers = new ArrayList<Peer>();
 
 	protected static ServerSocket serverSocket;
 
@@ -116,6 +115,13 @@ public class Connector {
 								connectToServer(msg.getInetAddress(), msg.getPort());
 								//TODO: Maybe we should update the title of the window. Low priority
 							}
+							if (message instanceof ClientAddedEvent) {
+								ClientAddedEvent clientAddedEvent = (ClientAddedEvent) message;
+								Peer peer = new Peer(clientAddedEvent.getInetAddress(), clientAddedEvent.getPort());
+								if (!peers.contains(peer)) {
+									peers.add(peer);
+								}
+							}
 						} catch (SocketException e) {
 							// This will probably occur when disconnecting because of a race-condition
 						} catch (EOFException e) {
@@ -131,38 +137,6 @@ public class Connector {
 		}).start();
 	}
 
-	/*
-	public MyTextEvent take() {
-		//TODO: Get rid of the Thread.sleep call.
-		//Could maybe be done by calling socket.isClosed and stream.isReady in isConnected.
-		//Could maybe be done by locking the method.
-		try {
-			Thread.sleep(1);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		if (isConnected()) {
-			//System.out.println("Taking from inStream");
-
-			try {
-				return (MyTextEvent) inStream.readObject();
-			} catch (SocketException e) {
-				// This will probably occur when disconnecting because of a race-condition
-				return null;
-			} catch (EOFException e) {
-				// This means that our peer has disconnected, so we should as well
-				disconnect();
-				return null;
-			} catch (ClassNotFoundException | IOException e) {
-				// We return null on exceptions
-				e.printStackTrace();
-				return null;
-			}
-		} else {
-			return null;
-		}
-	}
-	*/
 	//TODO: Take events from a Queue instead of from inStream
 	public MyTextEvent take() {
 		try {
