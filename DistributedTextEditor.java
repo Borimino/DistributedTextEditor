@@ -11,7 +11,6 @@ import java.util.concurrent.*;
 public class DistributedTextEditor extends JFrame {
 
 	private JTextArea area1 = new JTextArea(20,120);
-	private JTextArea area2 = new JTextArea(20,120);     
 	private JTextField ipaddress = new JTextField("IP address here");     
 	private JTextField portNumber = new JTextField("Server's port number here");     
 	private JTextField portNumberSelf = new JTextField("Own port number here");     
@@ -34,9 +33,7 @@ public class DistributedTextEditor extends JFrame {
 	public DistributedTextEditor() {
 		area1.setFont(new Font("Monospaced",Font.PLAIN,12));
 
-		area2.setFont(new Font("Monospaced",Font.PLAIN,12));
 		((AbstractDocument)area1.getDocument()).setDocumentFilter(dec);
-		area2.setEditable(false);
 
 		Container content = getContentPane();
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -46,13 +43,6 @@ public class DistributedTextEditor extends JFrame {
 					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		content.add(scroll1,BorderLayout.CENTER);
-
-		// Area2 is used to contain a copy of what the server has guarantied us has happened
-		//JScrollPane scroll2 = 
-			//new JScrollPane(area2, 
-					//JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-					//JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		//content.add(scroll2,BorderLayout.CENTER);	
 
 		content.add(ipaddress,BorderLayout.CENTER);	
 		content.add(portNumber,BorderLayout.CENTER);	
@@ -86,13 +76,9 @@ public class DistributedTextEditor extends JFrame {
 		area1.addKeyListener(k1);
 		setTitle("Disconnected");
 		setVisible(true);
-		//area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
-        //"Try to type and delete stuff in the top area.\n" + 
-        //"Then figure out how it works.\n", 0);
-
 		connector.startSendThread(dec);
 		connector.startReceiveThread();
-		er = new EventReplayer(connector, area1, dec, area2);
+		er = new EventReplayer(connector, area1, dec);
     dec.setEventReplayer(er);
 		ert = new Thread(er);
 		ert.start();
