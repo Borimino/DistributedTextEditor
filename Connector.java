@@ -28,6 +28,16 @@ public class Connector {
 		}
 	}
 
+	public void connectToServer(InetAddress serverName, int portNumber) {
+		try {
+			this.socket = new Socket(serverName,portNumber);
+			this.inStream = new ObjectInputStream(socket.getInputStream());
+			this.outStream = new ObjectOutputStream(socket.getOutputStream());
+		} catch (IOException e) {
+			// We do nothing on IOExceptions
+		}
+	}
+
 	public void disconnect() {
 		try {
 			inStream.close();
@@ -83,7 +93,7 @@ public class Connector {
 
 	//Make a thread that collect messages from inStream and treats them appropriately.
 	//		MyTextEvent goes in a Queue
-	//		SequencerRedirect triggers connectToServer on the corresponding server
+	//		RedirectMessage triggers connectToServer on the corresponding server
 	public void startReceiveThread() {
 		new Thread (new Runnable() {
 			public void run () {
@@ -99,6 +109,12 @@ public class Connector {
 							MyMessage message = (MyMessage) inStream.readObject();
 							if (message instanceof MyTextEvent) {
 								textEvents.add( (MyTextEvent) message);
+							}
+							if (message instanceof RedirectMessage) {
+								RedirectMessage msg = (RedirectMessage) message;
+								disconnect();
+								connectToServer(msg.getInetAddress(), msg.getPort());
+								//TODO: Maybe we should update the title of the window. Low priority
 							}
 						} catch (SocketException e) {
 							// This will probably occur when disconnecting because of a race-condition

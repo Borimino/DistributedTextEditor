@@ -16,7 +16,8 @@ public class ClientRedirector {
 				while (true) {
 					redirectConnector.listenForClient(portNumber);
 					InetAddress address = connector.getSocket().getInetAddress();
-					redirectConnector.send(new RedirectMessage(address));
+					int port = connector.getSocket().getPort();
+					redirectConnector.send(new RedirectMessage(address, port));
 				}
 			}
 		});
