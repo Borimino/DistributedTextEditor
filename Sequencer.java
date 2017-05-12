@@ -4,7 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Sequencer {
 
 	private ArrayList<Connector> clients = new ArrayList<Connector>();
-	private LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
+	private LinkedBlockingQueue<MyMessage> eventHistory = new LinkedBlockingQueue<MyMessage>();
 	private DistributedTextEditor distributedTextEditor;
 
 	public Sequencer (DistributedTextEditor distributedTextEditor) {
@@ -25,23 +25,36 @@ public class Sequencer {
 		}).start();
 	}
 
-	private void addClient(Connector connector) {
-		clients.add(connector);
+	private void addClient(Connector newClient) {
+		clients.add(newClient);
+
 		new Thread(new Runnable() {
 			public void run() {
 				String copyText = distributedTextEditor.getTextAreaSyncronizer().getGuarantiedText();
-				connector.send(new TextInsertEvent(0, copyText));
+				newClient.send(new TextInsertEvent(0, copyText));
+        // Send client list to the new client
+        for(Connector client : clients) {
+          newClient.send(new ClientAddedEvent(
+                client.getSocket().getInetAddress(),
+                client.getSocket().getPort()
+                ));
+        }
+        // Send new client to all the old clients
+        eventHistory.add(new ClientAddedEvent(
+                newClient.getSocket().getInetAddress(),
+                newClient.getSocket().getPort()
+                ));
 				while (true) {
-					MyTextEvent event = connector.take();
+					MyTextEvent event = newClient.take();
 					if (event != null) {
 						eventHistory.add(event);
 					} else {
-						if (!connector.isConnected()) {
+						if (!newClient.isConnected()) {
 							System.out.println("Client is no longer connected");
 
 							// Send ClientRemovedEvent to all other clients
 
-							clients.remove(connector);
+							clients.remove(newClient);
 							break;
 						}
 					}
@@ -55,7 +68,7 @@ public class Sequencer {
 			public void run() {
 				while (true) {
 					try {
-						MyTextEvent event = eventHistory.take();
+						MyMessage event = eventHistory.take();
 						for (Connector con : clients) {
 							con.send(event);
 						}
