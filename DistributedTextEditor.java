@@ -107,7 +107,7 @@ public class DistributedTextEditor extends JFrame {
 				changed = false;
 				Save.setEnabled(false);
 				SaveAs.setEnabled(false);
-				sequencer = new Sequencer();
+				sequencer = new Sequencer(DistributedTextEditor.this);
 				sequencer.listenForClients(portNumberSelf);
 				//TODO: Once the Sequencer has "started up", connect to the Sequencer.
 				while (!connector.isConnected()) {
@@ -206,5 +206,9 @@ public class DistributedTextEditor extends JFrame {
 	public static void main(String[] arg) {
 		new DistributedTextEditor();
 	}        
+
+	public TextAreaSyncronizer getTextAreaSyncronizer(){
+		return this.textAreaSyncronizer;
+	}
 
 }

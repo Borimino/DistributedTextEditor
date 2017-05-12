@@ -144,5 +144,10 @@ public class TextAreaSyncronizer implements Runnable {
     // TODO: Handle caret errors eg. out of bounds.
     dec.enable();
   }
+
+  public String getGuarantiedText() {
+  	return copyArea.getText();
+  }
+
 }
 

@@ -5,6 +5,12 @@ public class Sequencer {
 
 	private ArrayList<Connector> clients = new ArrayList<Connector>();
 	private LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
+	private DistributedTextEditor distributedTextEditor;
+
+	public Sequencer (DistributedTextEditor distributedTextEditor) {
+		this.distributedTextEditor = distributedTextEditor;
+	}
+
 
 	public void listenForClients(int portNumber) {
 		new Thread (new Runnable() {
@@ -23,6 +29,8 @@ public class Sequencer {
 		clients.add(connector);
 		new Thread(new Runnable() {
 			public void run() {
+				String copyText = distributedTextEditor.getTextAreaSyncronizer().getGuarantiedText();
+				connector.send(new TextInsertEvent(0, copyText));
 				while (true) {
 					MyTextEvent event = connector.take();
 					if (event != null) {
