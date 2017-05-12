@@ -39,6 +39,8 @@ public class Sequencer {
 						if (!connector.isConnected()) {
 							System.out.println("Client is no longer connected");
 
+							// Send ClientRemovedEvent to all other clients
+
 							clients.remove(connector);
 							break;
 						}
