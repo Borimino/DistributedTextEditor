@@ -36,21 +36,7 @@ public class Sequencer {
 			public void run() {
 				String copyText = distributedTextEditor.getTextAreaSyncronizer().getGuarantiedText();
 				newClient.send(new TextInsertEvent(0, copyText));
-				// Send client list to the new client
-				//for(Connector client : clients) {
-					//newClient.send(new ClientAddedEvent(
-								//client.getSocket().getInetAddress(),
-								//client.getSocket().getPort()
-								//));
-				//}
-				// Send new client to all the old clients
-				//eventHistory.add(new ClientAddedEvent(
-							//newClient.getSocket().getInetAddress(),
-							//newClient.getSocket().getPort()
-							//));
 				ClientAddedEvent greeting = (ClientAddedEvent) newClient.take();
-				System.out.println("Received: " + greeting.getInetAddress().toString() + ":" + greeting.getPort());
-
 				peers.add(new Peer(newClient.getSocket().getInetAddress(), greeting.getPort()));
 				for (Peer peer : peers) {
 					newClient.send(new ClientAddedEvent(peer.getInetAddress(), peer.getPort()));

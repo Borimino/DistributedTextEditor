@@ -54,7 +54,6 @@ public class Connector {
 				serverSocket = new ServerSocket(portNumber);
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.exit(-1);		// CRASH!!!
 			}
 		}
 		//new Thread(new Runnable() {
