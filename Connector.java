@@ -8,7 +8,7 @@ public class Connector {
 	protected Socket socket;
 	protected ObjectInputStream inStream;
 	protected ObjectOutputStream outStream;
-	protected LinkedBlockingQueue<MyTextEvent> textEvents = new LinkedBlockingQueue<MyTextEvent>();
+	protected LinkedBlockingQueue<MyMessage> textEvents = new LinkedBlockingQueue<MyMessage>();
 	protected ArrayList<Peer> peers = new ArrayList<Peer>();
 
 	protected static ServerSocket serverSocket;
@@ -122,11 +122,19 @@ public class Connector {
 									peers.add(peer);
 								}
 							}
+							if (message instanceof ClientDisconnectedEvent) {
+								ClientDisconnectedEvent clientDisconnectedEvent = (ClientDisconnectedEvent) message;
+								peers.remove(clientDisconnectedEvent.getPeer());
+							}
+
 						} catch (SocketException e) {
 							// This will probably occur when disconnecting because of a race-condition
 						} catch (EOFException e) {
 							// This means that our peer has disconnected, so we should as well
+							InetAddress address = socket.getInetAddress();
+							int port = socket.getPort();
 							disconnect();
+							textEvents.add(new ClientDisconnectedEvent(new Peer(address, port)));
 						} catch (ClassNotFoundException | IOException e) {
 							e.printStackTrace();
 						}
@@ -138,7 +146,7 @@ public class Connector {
 	}
 
 	//TODO: Take events from a Queue instead of from inStream
-	public MyTextEvent take() {
+	public MyMessage take() {
 		try {
 			return textEvents.take();
 		} catch (InterruptedException e) {

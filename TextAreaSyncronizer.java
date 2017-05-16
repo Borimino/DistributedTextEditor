@@ -31,7 +31,9 @@ public class TextAreaSyncronizer implements Runnable {
 		boolean wasInterrupted = false;
 		while (!wasInterrupted) {
 			try {
-				MyTextEvent mte = con.take();
+				MyMessage msg = con.take();
+				if (!(msg instanceof MyTextEvent)) continue;
+				MyTextEvent mte = (MyTextEvent) msg;
 				if ( mte == null ) continue;
 				// If the event is the same as the first event in the localEvents list, then remove the event from local events.
 

@@ -45,16 +45,22 @@ public class Sequencer {
                 newClient.getSocket().getPort()
                 ));
 				while (true) {
-					MyTextEvent event = newClient.take();
-					if (event != null) {
+					MyMessage msg = newClient.take();
+					if (msg instanceof MyTextEvent) {
+						MyTextEvent event = (MyTextEvent) msg;
 						eventHistory.add(event);
-					} else {
+					} else if (msg instanceof ClientDisconnectedEvent) {
 						if (!newClient.isConnected()) {
 							System.out.println("Client is no longer connected");
 
-							// Send ClientRemovedEvent to all other clients
-
+							// Send ClientDisconnectedEvent to all other clients
 							clients.remove(newClient);
+
+							for (Connector client : clients) {
+								client.send(msg);
+							}
+
+
 							break;
 						}
 					}
