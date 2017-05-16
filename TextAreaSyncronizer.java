@@ -101,7 +101,24 @@ public class TextAreaSyncronizer implements Runnable {
 							}
 						}
 					});
-				}
+				} else if (mte instanceof SyncronizeTextEvent) {
+          final SyncronizeTextEvent ste = (SyncronizeTextEvent)mte;
+          EventQueue.invokeLater(new Runnable() {
+						public void run() {
+							try {
+								dec.disable();
+                copyArea.setText(ste.getCopyText());
+								dec.enable();
+								resetDisplayedArea(0);
+							} catch (Exception e) {
+								System.err.println(e);
+								/* We catch all axceptions, as an uncaught exception would make the 
+								 * EDT unwind, which is now healthy.
+								 */
+							}
+						}
+					});
+        }
 			} catch (Exception e) {
 				e.printStackTrace();
 				wasInterrupted = true;
