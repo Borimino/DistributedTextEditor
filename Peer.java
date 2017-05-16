@@ -1,6 +1,7 @@
 import java.net.*;
+import java.io.*;
 
-public class Peer {
+public class Peer implements Serializable {
 
   private final InetAddress inetAddress;
   private final int port;
@@ -28,5 +29,10 @@ public class Peer {
     return this.inetAddress.equals(peer.getInetAddress()) &&
            this.port == peer.getPort();
   }
+
+  public String toString() {
+  	return inetAddress.toString() + ":" + port;
+  }
+
 
 }

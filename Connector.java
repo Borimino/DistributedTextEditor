@@ -10,30 +10,28 @@ public class Connector {
 	protected ObjectOutputStream outStream;
 	protected LinkedBlockingQueue<MyMessage> textEvents = new LinkedBlockingQueue<MyMessage>();
 	protected ArrayList<Peer> peers = new ArrayList<Peer>();
+	protected DistributedTextEditor dte;
 
 	protected static ServerSocket serverSocket;
 
-	/**
-	 *
-	 * Connects to the server on IP address serverName and port number portNumber.
-	 */
-	public void connectToServer(String serverName, int portNumber) {
-		try {
-			this.socket = new Socket(serverName,portNumber);
-			this.inStream = new ObjectInputStream(socket.getInputStream());
-			this.outStream = new ObjectOutputStream(socket.getOutputStream());
-		} catch (IOException e) {
-			// We do nothing on IOExceptions
-		}
+	public Connector(DistributedTextEditor dte) {
+		this.dte = dte;
 	}
 
-	public void connectToServer(InetAddress serverName, int portNumber) {
+	public void connectToServer(InetAddress serverName, int portNumber, int portNumberSelf) {
 		try {
-			this.socket = new Socket(serverName,portNumber);
+			//this.socket = new Socket(serverName,portNumber);
+			this.socket = new Socket();
+			socket.connect(new InetSocketAddress(serverName, portNumber), 5000);
 			this.inStream = new ObjectInputStream(socket.getInputStream());
 			this.outStream = new ObjectOutputStream(socket.getOutputStream());
+			//System.out.println(socket.getLocalAddress().toString() + ":" + socket.getLocalPort());
+			
+			send(new ClientAddedEvent(socket.getLocalAddress(), portNumberSelf));
+			dte.setLocalAddress(socket.getLocalAddress());
+
 		} catch (IOException e) {
-			// We do nothing on IOExceptions
+			e.printStackTrace();
 		}
 	}
 
@@ -56,6 +54,7 @@ public class Connector {
 				serverSocket = new ServerSocket(portNumber);
 			} catch (IOException e) {
 				e.printStackTrace();
+				System.exit(-1);		// CRASH!!!
 			}
 		}
 		//new Thread(new Runnable() {
@@ -112,7 +111,7 @@ public class Connector {
 							if (message instanceof RedirectMessage) {
 								RedirectMessage msg = (RedirectMessage) message;
 								disconnect();
-								connectToServer(msg.getInetAddress(), msg.getPort());
+								connectToServer(msg.getInetAddress(), msg.getPort(), dte.getListeningPortNumber());
 								//TODO: Maybe we should update the title of the window. Low priority
 							}
 							if (message instanceof ClientAddedEvent) {
@@ -121,6 +120,7 @@ public class Connector {
 								if (!peers.contains(peer)) {
 									peers.add(peer);
 								}
+								textEvents.add(clientAddedEvent);
 							}
 							if (message instanceof ClientDisconnectedEvent) {
 								ClientDisconnectedEvent clientDisconnectedEvent = (ClientDisconnectedEvent) message;
@@ -133,8 +133,10 @@ public class Connector {
 							// This means that our peer has disconnected, so we should as well
 							InetAddress address = socket.getInetAddress();
 							int port = socket.getPort();
+							Peer peer = new Peer(address, port);
 							disconnect();
-							textEvents.add(new ClientDisconnectedEvent(new Peer(address, port)));
+							textEvents.add(new ClientDisconnectedEvent(peer));
+							dte.clientDisconnected(peer);
 						} catch (ClassNotFoundException | IOException e) {
 							e.printStackTrace();
 						}
@@ -184,5 +186,30 @@ public class Connector {
 		}
 	}
 
+	public static void closeServerSocket() {
+		//try {
+			//if (serverSocket != null) {
+				//serverSocket.close();
+				//serverSocket = null;
+			//}
+		//} catch (IOException e) {
+			//e.printStackTrace();
+		//}
+
+	}
+
+	public boolean removePeer(Peer peer) {
+		return peers.remove(peer);
+	}
+
+	public boolean isThisFirstPeer(Peer peer) {
+		if (peers.isEmpty()) return false;
+
+		return (peers.get(0).equals(peer));
+	}
+
+	public Peer getFirstPeer(){
+		return peers.get(0);
+	}
 
 }

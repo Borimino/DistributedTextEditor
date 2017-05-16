@@ -4,10 +4,11 @@ public class ClientRedirector {
 
 	private Thread thread;
 	private Connector connector;
-	private Connector redirectConnector = new Connector();
+	private Connector redirectConnector;
 
-	public ClientRedirector (Connector connector) {
+	public ClientRedirector (Connector connector, Connector redirectConnector) {
 		this.connector = connector;
+		this.redirectConnector = redirectConnector;
 	}
 	
 	public void start(int portNumber) {
@@ -25,6 +26,7 @@ public class ClientRedirector {
 	}
 
 	public void stop() {
-		thread.interrupt();
+		if (thread != null) thread.interrupt();
+		Connector.closeServerSocket();
 	}
 }

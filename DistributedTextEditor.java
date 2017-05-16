@@ -26,9 +26,11 @@ public class DistributedTextEditor extends JFrame {
 	private boolean connected = false;
 	private DocumentEventCapturer dec = new DocumentEventCapturer();
 
-	private Connector connector = new Connector();
+	private InetAddress localAddress;
+
+	private Connector connector = new Connector(this);
 	private Sequencer sequencer;
-	private ClientRedirector redirector = new ClientRedirector(connector);
+	private ClientRedirector redirector = new ClientRedirector(connector, new Connector(this));
 
 	public DistributedTextEditor() {
 		area1.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -107,14 +109,13 @@ public class DistributedTextEditor extends JFrame {
 				changed = false;
 				Save.setEnabled(false);
 				SaveAs.setEnabled(false);
+				redirector.stop();
 				sequencer = new Sequencer(DistributedTextEditor.this);
 				sequencer.listenForClients(portNumberSelf);
-				//TODO: Once the Sequencer has "started up", connect to the Sequencer.
 				while (!connector.isConnected()) {
-					connector.connectToServer("localhost", portNumberSelf);
+					connector.connectToServer(InetAddress.getByName("localhost"), portNumberSelf, portNumberSelf);
 				}
 				sequencer.startSendThread();
-				//connector.listenForClient();
 			} catch (UnknownHostException ex) {
 				// TODO: Handle exception
 			}
@@ -123,23 +124,28 @@ public class DistributedTextEditor extends JFrame {
 
 	Action Connect = new AbstractAction("Connect") {
 		public void actionPerformed(ActionEvent e) {
-			String portString = portNumber.getText();
-			int portNumber = Integer.parseInt(portString);
-			String portStringSelf = portNumberSelf.getText();
-			int portNumberSelf = Integer.parseInt(portStringSelf);
-			saveOld();
-			area1.setText("");
-			setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber + "...");
-			connector.connectToServer(ipaddress.getText(), portNumber);
-			if (connector.isConnected()) {
-				setTitle("Connected to " + ipaddress.getText() + ":" + portNumber);
-				redirector.start(portNumberSelf);
-			} else {
-				setTitle("Not able to connect to " + ipaddress.getText() + ":" + portNumber);
+			try {
+				String portString = portNumber.getText();
+				int portNumber = Integer.parseInt(portString);
+				String portStringSelf = portNumberSelf.getText();
+				int portNumberSelf = Integer.parseInt(portStringSelf);
+				saveOld();
+				area1.setText("");
+				setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber + "...");
+				connector.connectToServer(InetAddress.getByName(ipaddress.getText()), portNumber, portNumberSelf);
+				if (connector.isConnected()) {
+					setTitle("Connected to " + ipaddress.getText() + ":" + portNumber);
+					redirector.start(portNumberSelf);
+				} else {
+					setTitle("Not able to connect to " + ipaddress.getText() + ":" + portNumber);
+				}
+				changed = false;
+				Save.setEnabled(false);
+				SaveAs.setEnabled(false);
+			} catch (UnknownHostException ex) {
+				ex.printStackTrace();
 			}
-			changed = false;
-			Save.setEnabled(false);
-			SaveAs.setEnabled(false);
+
 		}
 	};
 
@@ -148,6 +154,8 @@ public class DistributedTextEditor extends JFrame {
 			setTitle("Disconnected");
 			connector.disconnect();
 			redirector.stop();
+			sequencer.stop();
+			sequencer = null;
 		}
 	};
 
@@ -210,5 +218,81 @@ public class DistributedTextEditor extends JFrame {
 	public TextAreaSyncronizer getTextAreaSyncronizer(){
 		return this.textAreaSyncronizer;
 	}
+
+	public void clientDisconnected(Peer peer) {
+		if (sequencer != null) return;
+
+		connector.removePeer(peer);
+
+		try {
+			int port = Integer.parseInt(portNumberSelf.getText());
+			InetAddress address = InetAddress.getLocalHost();
+			Peer me = new Peer(localAddress, port); 
+			System.out.println("Am I the first Peer??");
+			System.out.println(me.toString());
+			System.out.println(connector.getFirstPeer().toString());
+			System.out.println("Well am I??");
+			System.out.println("1");
+			System.out.println("2");
+			System.out.println("3");
+			System.out.println("4");
+			System.out.println("6");
+
+
+			if (connector.isThisFirstPeer(me)) {
+				System.out.println("I am the first peer!!");
+
+				String localhostAddress = address.getHostAddress();
+				setTitle("I'm listening on " + localhostAddress + ":" + port);
+				changed = false;
+				Save.setEnabled(false);
+				SaveAs.setEnabled(false);
+				redirector.stop();
+				sequencer = new Sequencer(DistributedTextEditor.this);
+				sequencer.listenForClients(port);
+				while (!connector.isConnected()) {
+					connector.connectToServer(InetAddress.getByName("localhost"), port, port);
+					try {
+						Thread.sleep(10);		// DEBUG
+					} catch (InterruptedException ex) {
+						ex.printStackTrace();
+					}
+
+
+				}
+				sequencer.startSendThread();
+			} else {
+				System.out.println("I am not the first peer :(");
+
+				Peer first = connector.getFirstPeer();
+
+				for (int i = 0; i < 10; i++) {
+					connector.connectToServer(first.getInetAddress(), first.getPort(), port);
+					if (connector.isConnected()) break;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				if (connector.isConnected()) {
+					return;
+				} else {
+					clientDisconnected(first);
+				}
+			}
+		} catch (UnknownHostException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public int getListeningPortNumber() {
+			return Integer.parseInt(portNumberSelf.getText());
+	}
+
+	public void setLocalAddress(InetAddress address) {
+		this.localAddress = address;
+	}
+
 
 }

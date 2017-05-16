@@ -4,8 +4,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Sequencer {
 
 	private ArrayList<Connector> clients = new ArrayList<Connector>();
+	private ArrayList<Peer> peers = new ArrayList<Peer>();
 	private LinkedBlockingQueue<MyMessage> eventHistory = new LinkedBlockingQueue<MyMessage>();
 	private DistributedTextEditor distributedTextEditor;
+	private ArrayList<Thread> threads = new ArrayList<Thread>();
 
 	public Sequencer (DistributedTextEditor distributedTextEditor) {
 		this.distributedTextEditor = distributedTextEditor;
@@ -13,37 +15,48 @@ public class Sequencer {
 
 
 	public void listenForClients(int portNumber) {
-		new Thread (new Runnable() {
+		Thread t = new Thread (new Runnable() {
 			public void run() {
 				while (true) {
-					Connector connector = new Connector();
+					Connector connector = new Connector(distributedTextEditor);
 					connector.listenForClient(portNumber);
 					connector.startReceiveThread();
 					addClient(connector);
 				}
 			}
-		}).start();
+		});
+		threads.add(t);
+		t.start();
 	}
 
 	private void addClient(Connector newClient) {
 		clients.add(newClient);
 
-		new Thread(new Runnable() {
+		Thread t = new Thread(new Runnable() {
 			public void run() {
 				String copyText = distributedTextEditor.getTextAreaSyncronizer().getGuarantiedText();
 				newClient.send(new TextInsertEvent(0, copyText));
-        // Send client list to the new client
-        for(Connector client : clients) {
-          newClient.send(new ClientAddedEvent(
-                client.getSocket().getInetAddress(),
-                client.getSocket().getPort()
-                ));
-        }
-        // Send new client to all the old clients
-        eventHistory.add(new ClientAddedEvent(
-                newClient.getSocket().getInetAddress(),
-                newClient.getSocket().getPort()
-                ));
+				// Send client list to the new client
+				//for(Connector client : clients) {
+					//newClient.send(new ClientAddedEvent(
+								//client.getSocket().getInetAddress(),
+								//client.getSocket().getPort()
+								//));
+				//}
+				// Send new client to all the old clients
+				//eventHistory.add(new ClientAddedEvent(
+							//newClient.getSocket().getInetAddress(),
+							//newClient.getSocket().getPort()
+							//));
+				ClientAddedEvent greeting = (ClientAddedEvent) newClient.take();
+				System.out.println("Received: " + greeting.getInetAddress().toString() + ":" + greeting.getPort());
+
+				peers.add(new Peer(newClient.getSocket().getInetAddress(), greeting.getPort()));
+				for (Peer peer : peers) {
+					newClient.send(new ClientAddedEvent(peer.getInetAddress(), peer.getPort()));
+				}
+				eventHistory.add(new ClientAddedEvent(newClient.getSocket().getInetAddress(),
+													  greeting.getPort()));
 				while (true) {
 					MyMessage msg = newClient.take();
 					if (msg instanceof MyTextEvent) {
@@ -66,11 +79,13 @@ public class Sequencer {
 					}
 				}
 			}
-		}).start();
+		});
+		threads.add(t);
+		t.start();
 	}
 
 	public void startSendThread() {
-		new Thread(new Runnable() {
+		Thread t = new Thread(new Runnable() {
 			public void run() {
 				while (true) {
 					try {
@@ -83,7 +98,17 @@ public class Sequencer {
 					}
 				}
 			}
-		}).start();
+		});
+		threads.add(t);
+		t.start();
 	}
+
+	public void stop() {
+		for (Thread t : threads) {
+			t.interrupt();
+		}
+		Connector.closeServerSocket();
+	}
+
 
 }
