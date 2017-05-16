@@ -35,7 +35,7 @@ public class Sequencer {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				String copyText = distributedTextEditor.getTextAreaSyncronizer().getGuarantiedText();
-				newClient.send(new TextInsertEvent(0, copyText));
+				newClient.send(new SyncronizeTextEvent(copyText));
 				// Send client list to the new client
 				//for(Connector client : clients) {
 					//newClient.send(new ClientAddedEvent(
