@@ -228,19 +228,19 @@ public class DistributedTextEditor extends JFrame {
 			int port = Integer.parseInt(portNumberSelf.getText());
 			InetAddress address = InetAddress.getLocalHost();
 			Peer me = new Peer(localAddress, port); 
-			System.out.println("Am I the first Peer??");
-			System.out.println(me.toString());
-			System.out.println(connector.getFirstPeer().toString());
-			System.out.println("Well am I??");
-			System.out.println("1");
-			System.out.println("2");
-			System.out.println("3");
-			System.out.println("4");
-			System.out.println("6");
+			//System.out.println("Am I the first Peer??");
+			//System.out.println(me.toString());
+			//System.out.println(connector.getFirstPeer().toString());
+			//System.out.println("Well am I??");
+			//System.out.println("1");
+			//System.out.println("2");
+			//System.out.println("3");
+			//System.out.println("4");
+			//System.out.println("6");
 
 
 			if (connector.isThisFirstPeer(me)) {
-				System.out.println("I am the first peer!!");
+				//System.out.println("I am the first peer!!");
 
 				String localhostAddress = address.getHostAddress();
 				setTitle("I'm listening on " + localhostAddress + ":" + port);
@@ -262,7 +262,7 @@ public class DistributedTextEditor extends JFrame {
 				}
 				sequencer.startSendThread();
 			} else {
-				System.out.println("I am not the first peer :(");
+				//System.out.println("I am not the first peer :(");
 
 				Peer first = connector.getFirstPeer();
 

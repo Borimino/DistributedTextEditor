@@ -36,16 +36,18 @@ public class Connector {
 	}
 
 	public void disconnect() {
-		try {
-			inStream.close();
-			outStream.close();
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		synchronized (this) {
+			try {
+				inStream.close();
+				outStream.close();
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			inStream = null;
+			outStream = null;
+			socket = null;
 		}
-		inStream = null;
-		outStream = null;
-		socket = null;
 	}
 
 	public void listenForClient(int portNumber) {
@@ -81,7 +83,7 @@ public class Connector {
     }
 
 	public boolean isConnected() {
-		return (socket != null && inStream != null && outStream != null);
+		return (socket != null && inStream != null && outStream != null && socket.isConnected() && !socket.isClosed());
 	}
 
 	public Socket getSocket() {
@@ -111,7 +113,14 @@ public class Connector {
 								RedirectMessage msg = (RedirectMessage) message;
 								disconnect();
 								connectToServer(msg.getInetAddress(), msg.getPort(), dte.getListeningPortNumber());
-								//TODO: Maybe we should update the title of the window. Low priority
+								if (isConnected()) {
+									dte.setTitle("Connected to " + msg.getInetAddress().getHostAddress() + ":" + msg.getPort());
+								} else {
+									dte.setTitle("Not able to connect to " + msg.getInetAddress().getHostAddress() + ":" + msg.getPort());
+
+								}
+
+
 							}
 							if (message instanceof ClientAddedEvent) {
 								ClientAddedEvent clientAddedEvent = (ClientAddedEvent) message;
@@ -176,12 +185,14 @@ public class Connector {
 	}
 
 	public void send(MyMessage event) {
-		try {
-			if (isConnected()) {
-				outStream.writeObject(event);
+		synchronized (this) {
+			try {
+				if (isConnected()) {
+					outStream.writeObject(event);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
