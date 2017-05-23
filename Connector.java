@@ -31,6 +31,8 @@ public class Connector {
 			dte.setLocalAddress(socket.getLocalAddress());
 
 		} catch (IOException e) {
+			System.out.println("Unable to connect to " + serverName.toString() + ":" + portNumber);
+
 			e.printStackTrace();
 		}
 	}

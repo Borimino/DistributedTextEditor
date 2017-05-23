@@ -80,7 +80,7 @@ public class Sequencer {
 							con.send(event);
 						}
 					} catch (InterruptedException e) {
-            return;
+						return;
 					}
 				}
 			}
@@ -94,7 +94,8 @@ public class Sequencer {
 			t.interrupt();
 		}
 		Connector.closeServerSocket();
+		for (Connector client : clients) {
+			client.disconnect();
+		}
 	}
-
-
 }

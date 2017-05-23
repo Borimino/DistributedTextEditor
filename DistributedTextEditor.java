@@ -154,8 +154,10 @@ public class DistributedTextEditor extends JFrame {
 			setTitle("Disconnected");
 			connector.disconnect();
 			redirector.stop();
-			sequencer.stop();
-			sequencer = null;
+			if (sequencer != null) {
+				sequencer.stop();
+				sequencer = null;
+			}
 		}
 	};
 
