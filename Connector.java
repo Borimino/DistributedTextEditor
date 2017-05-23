@@ -140,6 +140,7 @@ public class Connector {
 						} catch (SocketException e) {
 							// This will probably occur when disconnecting because of a race-condition
 						} catch (EOFException e) {
+							if (!isConnected()) continue;
 							// This means that our peer has disconnected, so we should as well
 							InetAddress address = socket.getInetAddress();
 							int port = socket.getPort();

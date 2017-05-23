@@ -151,13 +151,13 @@ public class DistributedTextEditor extends JFrame {
 
 	Action Disconnect = new AbstractAction("Disconnect") {
 		public void actionPerformed(ActionEvent e) {	
-			setTitle("Disconnected");
-			connector.disconnect();
-			redirector.stop();
 			if (sequencer != null) {
 				sequencer.stop();
 				sequencer = null;
 			}
+			redirector.stop();
+			connector.disconnect();
+			setTitle("Disconnected");
 		}
 	};
 
@@ -269,15 +269,16 @@ public class DistributedTextEditor extends JFrame {
 				Peer first = connector.getFirstPeer();
 
 				for (int i = 0; i < 10; i++) {
-					connector.connectToServer(first.getInetAddress(), first.getPort(), port);
-					if (connector.isConnected()) break;
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+					connector.connectToServer(first.getInetAddress(), first.getPort(), port);
+					if (connector.isConnected()) break;
 				}
 				if (connector.isConnected()) {
+					setTitle("Connecetd to " + first.getInetAddress().getHostAddress() + ":" + first.getPort());
 					return;
 				} else {
 					clientDisconnected(first);
