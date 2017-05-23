@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Connector {
 
@@ -212,10 +212,22 @@ public class Connector {
 		return peers.remove(peer);
 	}
 
-	public boolean isThisFirstPeer(Peer peer) {
+	public boolean amIFirstPeer(int port) {
 		if (peers.isEmpty()) return false;
 
-		return (peers.get(0).equals(peer));
+		try {
+			for (Enumeration<NetworkInterface> ni = NetworkInterface.getNetworkInterfaces(); ni.hasMoreElements();) {
+				for (Enumeration<InetAddress> e2 = ni.nextElement().getInetAddresses(); e2.hasMoreElements();) {
+					InetAddress inetAddress = e2.nextElement();
+					Peer me = new Peer(inetAddress, port);
+					if (peers.get(0).equals(me)) return true;
+				}
+			}
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+
+		return false;
 	}
 
 	public Peer getFirstPeer(){

@@ -229,7 +229,7 @@ public class DistributedTextEditor extends JFrame {
 		try {
 			int port = Integer.parseInt(portNumberSelf.getText());
 			InetAddress address = InetAddress.getLocalHost();
-			Peer me = new Peer(localAddress, port); 
+			//Peer me = new Peer(localAddress, port); 
 			//System.out.println("Am I the first Peer??");
 			//System.out.println(me.toString());
 			//System.out.println(connector.getFirstPeer().toString());
@@ -241,8 +241,8 @@ public class DistributedTextEditor extends JFrame {
 			//System.out.println("6");
 
 
-			if (connector.isThisFirstPeer(me)) {
-				//System.out.println("I am the first peer!!");
+			if (connector.amIFirstPeer(port)) {
+				System.out.println("I am the first peer!!");
 
 				String localhostAddress = address.getHostAddress();
 				setTitle("I'm listening on " + localhostAddress + ":" + port);
@@ -264,7 +264,7 @@ public class DistributedTextEditor extends JFrame {
 				}
 				sequencer.startSendThread();
 			} else {
-				//System.out.println("I am not the first peer :(");
+				System.out.println("I am not the first peer :(");
 
 				Peer first = connector.getFirstPeer();
 
