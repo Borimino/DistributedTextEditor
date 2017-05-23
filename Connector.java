@@ -155,12 +155,10 @@ public class Connector {
 		}).start();
 	}
 
-	//TODO: Take events from a Queue instead of from inStream
 	public MyMessage take() {
 		try {
 			return textEvents.take();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 			return null;
 		}
 	}

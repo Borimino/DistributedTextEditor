@@ -80,7 +80,7 @@ public class Sequencer {
 							con.send(event);
 						}
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+            return;
 					}
 				}
 			}
