@@ -40,9 +40,9 @@ public class Connector {
 	public void disconnect() {
 		synchronized (this) {
 			try {
+				if (socket != null) socket.close();
 				if (inStream != null) inStream.close();
 				if (outStream != null) outStream.close();
-				if (socket != null) socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
